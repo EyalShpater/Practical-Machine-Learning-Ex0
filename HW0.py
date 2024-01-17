@@ -17,18 +17,18 @@ from sentence_transformers import SentenceTransformer
 model = SentenceTransformer('average_word_embeddings_glove.6B.300d')
 
 
-# def embed_text(text_list):
-#     """
-#         Embeds a list of text samples into a vector space.
-#         ## Do not change the implementation of  this function
-#         Args:
-#         text_list (list): A list of text samples to be embedded.
-#
-#         Returns:
-#         numpy.ndarray: A matrix of embedded vectors representing the input text samples.
-#         """
-#     embedded_text = model.encode(text_list)
-#     return embedded_text
+def embed_text(text_list):
+    """
+        Embeds a list of text samples into a vector space.
+        ## Do not change the implementation of  this function
+        Args:
+        text_list (list): A list of text samples to be embedded.
+
+        Returns:
+        numpy.ndarray: A matrix of embedded vectors representing the input text samples.
+        """
+    embedded_text = model.encode(text_list)
+    return embedded_text
 
 
 ###############################################################
@@ -104,43 +104,52 @@ def explore_email_dataset(dataset):
     }
 
 
-# # Convert text to vectors
-# def text2vector(dataset):
-#     """
-#     Add a column named 'vector' that contains a vector representation of the text data in the 'text' column using the
-#     provided embed_text function.
-#
-#     Args:
-#     dataset (pandas.DataFrame): The input dataset containing a 'text' column to be converted.
-#
-#     Returns:
-#     pandas.DataFrame: The input dataset with an additional 'vector' column containing vector representations of text.
-#
-#     Notes:
-#     The 'dataset' argument should be a pandas DataFrame containing a 'text' column.
-#     """
-#     dataset['vector'] = dataset['text'].apply(...)  # embed the text column to obtain a vector representation
-#     return dataset
-#
-#
-# # Partition Data into Train and Test Sets
-# def train_test_split(dataset, test_size=0.2, seed=42):
-#     """
-#     Splits a dataset into training and testing subsets.
-#
-#     Args:
-#     dataset (pandas.DataFrame): The input dataset to be split into train and test sets.
-#     test_size (float): The proportion of the dataset to include in the test split (default is 0.2).
-#     seed (int): The seed used by the random number generator (default is 42) for reproducibility.
-#
-#     Returns:
-#     tuple: A tuple containing two pandas DataFrames (train_data, test_data) representing the training and testing subsets.
-#     """
-#
-#     ...
-#     return train_data, test_data
-#
-#
+# Convert text to vectors
+def text2vector(dataset):
+    """
+    Add a column named 'vector' that contains a vector representation of the text data in the 'text' column using the
+    provided embed_text function.
+
+    Args:
+    dataset (pandas.DataFrame): The input dataset containing a 'text' column to be converted.
+
+    Returns:
+    pandas.DataFrame: The input dataset with an additional 'vector' column containing vector representations of text.
+
+    Notes:
+    The 'dataset' argument should be a pandas DataFrame containing a 'text' column.
+    """
+    dataset['vector'] = dataset['text'].apply(embed_text)  # embed the text column to obtain a vector representation
+    return dataset
+
+
+# Partition Data into Train and Test Sets
+def train_test_split(dataset, test_size=0.2, seed=42):
+    """
+    Splits a dataset into training and testing subsets.
+
+    Args:
+    dataset (pandas.DataFrame): The input dataset to be split into train and test sets.
+    test_size (float): The proportion of the dataset to include in the test split (default is 0.2).
+    seed (int): The seed used by the random number generator (default is 42) for reproducibility.
+
+    Returns:
+    tuple: A tuple containing two pandas DataFrames (train_data, test_data) representing the training and testing subsets.
+    """
+
+    np.random.seed(seed)
+    indices = np.random.permutation(len(dataset))
+
+    test_size = int(test_size * len(dataset))
+    train_indices = indices[test_size:]
+    test_indices = indices[:test_size]
+
+    train_data = dataset.iloc[train_indices]
+    test_data = dataset.iloc[test_indices]
+
+    return train_data, test_data
+
+
 # # Implementing distance functions
 # def calculate_distance(vector1, vector2, distance_type='euclidean'):
 #     """
@@ -273,9 +282,13 @@ def explore_email_dataset(dataset):
 if __name__ == '__main__':
     file_path = "emails.csv"
     df = load_dataset(file_path)
-    print((df[df['label'] == 'spam']['text'].apply(lambda text : len(text)).sum()))
-    print(explore_email_dataset(df))
-    # Calculating basic stats. Note the printing format of floats.
+
+    print(train_test_split(df))
+    # print("*****before*****")
+    # print(df)
+    # print("*****after*****")
+    # print(text2vector(df))
+    # # Calculating basic stats. Note the printing format of floats.
     # stats = explore_email_dataset(df)
     # print(f"Number of samples: {stats['num_samples']}")
     # print(f"Number of spam emails: {stats['spam_count']}")
@@ -283,7 +296,7 @@ if __name__ == '__main__':
     # print(f"Average email length (Overall): {stats['overall_average_length']:.2f}")
     # print(f"Average Spam email length: {stats['average_spam_length']:.2f}")
     # print(f"Average Ham email length: {stats['average_ham_length']:.2f}")
-    #
+
     # df_with_vectors = text2vector(df)
     # train_set, test_set = train_test_split(df_with_vectors, test_size=0.2)
     # test_calculate_distance()
