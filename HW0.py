@@ -10,6 +10,7 @@
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from numpy import random
 
 ###############################################################
 ############ Do not change this section  ######################
